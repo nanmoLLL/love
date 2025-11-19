@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<!-- 关键：通过Flask的url_for正确引用CSS，避免路径错误 -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/wishlist.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">我们的愿望清单</h1>
+
+    <!-- 添加愿望表单 -->
+    <div class="add-wish-form">
+        <textarea class="wish-input" placeholder="写下你的愿望吧..."></textarea>
+        <button class="add-btn">添加愿望</button>
+    </div>
+
+    <!-- 未完成愿望列表 -->
+    <h2 class="section-title">未完成的愿望</h2>
+    <div class="wish-list pending-wishes">
+        {% for wish in pending_wishes %}
+        <div class="wish-card" data-index="{{ loop.index0 }}" data-status="pending">
+            <div class="wish-content">
+                <p class="wish-text">{{ wish.content }}</p>
+                <!-- 详情文本（如果有） -->
+                {% if wish.detail_text %}
+                <p class="wish-detail">{{ wish.detail_text }}</p>
+                {% endif %}
+                <p class="wish-time">{{ wish.time }}</p>
+            </div>
+            <!-- 右侧图片（只显示第一张） -->
+            {% if wish.images %}
+            <div class="wish-image">
+                <img src="{{ wish.images.split(',')[0] }}" alt="愿望图片">
+            </div>
+            {% endif %}
+            <button class="toggle-btn">✓ 标记完成</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- 已完成愿望列表 -->
+    <h2 class="section-title">已完成的愿望</h2>
+    <div class="wish-list completed-wishes">
+        {% for wish in completed_wishes %}
+        <div class="wish-card" data-index="{{ loop.index0 + pending_count }}" data-status="completed">
+            <div class="wish-content">
+                <p class="wish-text">{{ wish.content }}</p>
+                <!-- 详情文本（如果有） -->
+                {% if wish.detail_text %}
+                <p class="wish-detail">{{ wish.detail_text }}</p>
+                {% endif %}
+                <p class="wish-time">{{ wish.time }}</p>
+            </div>
+            <!-- 右侧图片（只显示第一张） -->
+            {% if wish.images %}
+            <div class="wish-image">
+                <img src="{{ wish.images.split(',')[0] }}" alt="愿望图片">
+            </div>
+            {% endif %}
+            <button class="toggle-btn">✗ 取消完成</button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- 未完成愿望详情输入对话框 -->
+<div class="modal" id="pendingDetailModal">
+    <div class="modal-content">
+        <h3>完善愿望详情</h3>
+        <textarea class="detail-text-input" placeholder="添加详细描述..."></textarea>
+        <div class="image-upload">
+            <label>上传图片（可选）：</label>
+            <input type="file" class="image-input" multiple accept="image/*">
+        </div>
+        <div class="modal-buttons">
+            <button class="confirm-detail-btn">确认</button>
+            <button class="cancel-btn">取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- 已完成愿望详情对话框（含备注功能） -->
+<div class="modal" id="completedDetailModal">
+    <div class="modal-content">
+        <h3>愿望详情</h3>
+        <div class="wish-full-content"></div>
+        <!-- 备注输入区 -->
+        <div class="notes-section">
+            <h4>添加备注：</h4>
+            <textarea class="note-input" placeholder="写下备注..."></textarea>
+            <button class="add-note-btn">保存备注</button>
+            <!-- 备注列表 -->
+            <div class="notes-list"></div>
+        </div>
+        <button class="close-detail-btn">关闭</button>
+    </div>
+</div>
+
+<!-- 操作成功提示框 -->
+<div class="toast" id="toast">操作成功</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/wishlist.js') }}"></script>
+{% endblock %}

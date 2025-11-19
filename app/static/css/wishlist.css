@@ -1,0 +1,297 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e6e6fa 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #3a4a5c;
+    padding: 40px 0 80px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.title {
+    font-size: 2rem;
+    text-align: center;
+    margin: 60px 0 40px;
+    background: linear-gradient(90deg, #4a90e2, #9c27b0);
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+.add-wish-form {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.wish-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    min-height: 80px;
+    resize: vertical;
+    font-size: 1rem;
+    margin-bottom: 15px;
+}
+
+.add-btn {
+    background: #4a90e2;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.add-btn:hover {
+    background: #3a7bc8;
+}
+
+.wish-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+/* 愿望卡片样式（添加标签后调整） */
+.wish-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px;
+    padding-left: 60px;  /* 左侧留出标签空间 */
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+    position: relative;  /* 用于标签绝对定位 */
+}
+
+.wish-card:hover {
+    transform: translateY(-2px);
+}
+
+/* 状态标签样式（核心UI调整） */
+.status-tag {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: white;
+}
+
+.pending-tag {
+    background: #ff6b6b;  /* 未完成：红色 */
+}
+
+.completed-tag {
+    background: #4ecdc4;  /* 已完成：绿色 */
+}
+
+.wish-content {
+    flex: 1;
+}
+
+.wish-text {
+    font-size: 1rem;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.wish-detail {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 8px 0;
+    padding-left: 5px;
+    border-left: 2px solid #4a90e2;
+}
+
+.wish-time {
+    font-size: 0.8rem;
+    color: #999;
+    margin-top: 5px;
+}
+
+.wish-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.wish-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.toggle-btn {
+    align-self: center;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    background: #f0f7ff;
+    color: #4a90e2;
+}
+
+.toggle-btn:hover {
+    background: #4a90e2;
+    color: white;
+}
+
+/* 模态框样式 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+
+.detail-text-input, .note-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin: 15px 0;
+    min-height: 80px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.image-upload {
+    margin: 15px 0;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+
+.confirm-detail-btn, .add-note-btn, .cancel-btn, .close-detail-btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.confirm-detail-btn, .add-note-btn {
+    background: #4a90e2;
+    color: white;
+}
+
+.confirm-detail-btn:hover, .add-note-btn:hover {
+    background: #3a7bc8;
+}
+
+.cancel-btn, .close-detail-btn {
+    background: #eee;
+    color: #333;
+}
+
+.notes-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.notes-list {
+    margin-top: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.note-item {
+    padding: 8px;
+    margin-bottom: 8px;
+    background: #f9f9f9;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.note-time {
+    color: #999;
+    font-size: 0.75rem;
+    margin-top: 3px;
+}
+
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 30px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+@media (max-width: 600px) {
+    .title {
+        font-size: 1.6rem;
+        margin: 40px 0 30px;
+    }
+    .wish-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-left: 50px;  /* 适配移动端标签 */
+    }
+    .wish-image {
+        width: 100%;
+        height: 180px;
+        margin-top: 10px;
+    }
+    .toggle-btn {
+        align-self: flex-end;
+        margin-top: 10px;
+    }
+}

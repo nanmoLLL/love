@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">给最爱的赵小惠宝宝</h1>
+
+    <div class="content">
+        <p class="message">
+            {{ message|safe }}
+        </p>
+
+        <div class="photo-container" onclick="showMorePhotos()">
+            <img src="{{ url_for('static', filename='images/1.jpg') }}" class="photo" alt="我们的回忆">
+        </div>
+        <p style="color: #888; font-size: 0.9rem;">点击图片看看我们的回忆～</p>
+
+        <button class="interactive-btn" onclick="handleClick()">点我一下～</button>
+    </div>
+
+    <div class="message-box">
+        <h3>留言板</h3>
+        <form id="messageForm">
+            <textarea class="message-input" name="message" placeholder="留下你想对我说的话，每一句我都会认真倾听哦"></textarea>
+            <button type="submit" class="submit-btn">发送</button>
+        </form>
+    </div>
+
+    <div class="footer">
+        时间会记得所有相遇的痕迹～
+    </div>
+</div>
+
+<!-- 访问次数惊喜弹窗 -->
+<div class="surprise-modal {{ 'show' if surprise_text else '' }}" id="surpriseModal">
+    <div class="surprise-content">
+        <p>{{ surprise_text }}</p>
+        <button class="close-btn" onclick="document.getElementById('surpriseModal').classList.remove('show')">
+            知道啦～
+        </button>
+    </div>
+</div>
+
+<!-- 留言成功弹窗 -->
+<div class="surprise-modal" id="messageSuccessModal">
+    <div class="surprise-content">
+        <p>你的话语，是我今天收到的，最好的礼物</p>
+        <button class="close-btn" onclick="document.getElementById('messageSuccessModal').classList.remove('show')">
+            知道啦～
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}

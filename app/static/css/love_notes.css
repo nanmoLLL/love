@@ -1,0 +1,108 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    background: linear-gradient(135deg, #ffe6f0 0%, #e6e6fa 100%);
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+.love-note {
+    position: absolute;
+    padding: 10px 15px;
+    border-radius: 30px;
+    color: white;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 0.85rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    z-index: 10;
+    opacity: 0;
+    transform: scale(0.8) rotate(-3deg);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    max-width: 160px;
+    width: auto;
+    word-wrap: break-word;
+    text-align: center;
+    cursor: pointer;
+    line-height: 1.4;
+}
+.love-note.show {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+}
+.love-note.hide {
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s ease-out;
+}
+
+/* 爱心样式 */
+.heart {
+    --size: 16px;
+    --circle-diameter: calc(var(--size) * 0.98);
+    position: fixed;
+    width: var(--size);
+    height: var(--size);
+    background: #e91e63;
+    transform: rotate(45deg) scale(1);
+    pointer-events: none;
+    z-index: 5;
+}
+.heart:before, .heart:after {
+    content: '';
+    position: absolute;
+    width: var(--circle-diameter);
+    height: var(--circle-diameter);
+    background: inherit;
+    border-radius: 50%;
+}
+.heart:before {
+    top: calc(var(--circle-diameter) / -2);
+    left: calc((var(--size) - var(--circle-diameter)) / 2);
+}
+.heart:after {
+    top: calc((var(--size) - var(--circle-diameter)) / 2);
+    left: calc(var(--circle-diameter) / -2);
+}
+
+.back-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #e91e63;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-size: 1rem;
+    cursor: pointer;
+    z-index: 100;
+    box-shadow: 0 4px 10px rgba(233, 30, 99, 0.3);
+    transition: all 0.3s;
+}
+.back-btn:hover {
+    background: #c2185b;
+    transform: translateX(-50%) translateY(-3px);
+}
+
+@media (max-width: 600px) {
+    .love-note {
+        max-width: 130px;
+        font-size: 0.8rem;
+        padding: 8px 12px;
+    }
+}
+
+/* 爱心漂浮动画 */
+@keyframes float {
+    0% { transform: rotate(45deg) translateY(0); opacity: 1; }
+    100% { transform: rotate(45deg) translateY(-200px); opacity: 0; }
+}
+@keyframes floatDown {
+    0% { transform: rotate(45deg) translateY(0); opacity: 1; }
+    100% { transform: rotate(45deg) translateY(200px); opacity: 0; }
+}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}满满的心意呀{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/love_notes.css') }}">
+{% endblock %}
+
+{% block content %}
+<button class="back-btn" onclick="window.location.href='/'">返回主页</button>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const loveMessages = {{ love_messages|safe }};
+</script>
+<script src="{{ url_for('static', filename='js/love_notes.js') }}"></script>
+{% endblock %}
