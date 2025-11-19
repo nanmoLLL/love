@@ -1,81 +1,57 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for
-from app.utils.wishlist import get_wishes, add_wish, toggle_wish_status, update_wish_detail, get_wish_detail, \
-    add_wish_note
-import os
+from flask import Blueprint, render_template, request, redirect, url_for, current_app
+from app.utils.wishlist import get_wishlist, add_wish, toggle_wish_check, reply_wish, delete_wish
+from app.utils.common import get_client_ip
 
+# 创建蓝图
 wishlist_bp = Blueprint('wishlist', __name__)
 
 
-# 愿望清单页面
 @wishlist_bp.route('/wishlist')
 def wishlist():
-    wishes = get_wishes()  # 获取所有愿望（已修复解析逻辑）
-    pending_wishes = [w for w in wishes if not w['completed']]
-    completed_wishes = [w for w in wishes if w['completed']]
-    return render_template('wishlist.html',
-                           pending_wishes=pending_wishes,
-                           completed_wishes=completed_wishes,
-                           pending_count=len(pending_wishes))
+    """愿望清单页面"""
+    wishes = get_wishlist()
+    return render_template('wishlist.html', wishes=wishes)
 
 
-# 添加愿望（修复重定向问题）
 @wishlist_bp.route('/wishlist', methods=['POST'])
 def add_wish_route():
+    """添加愿望的接口"""
+    # 获取表单中的愿望内容
     wish_content = request.form.get('wish', '').strip()
+    client_ip = get_client_ip(request)
+
     if wish_content:
-        add_wish(wish_content, request.remote_addr)  # 调用修复后的add_wish函数
-    # 用绝对路径重定向，避免路由跳转错误
-    return redirect(url_for('wishlist.wishlist', _external=True))
+        print(f"收到新愿望：{wish_content}（IP：{client_ip}）")
+        add_wish(wish_content, client_ip)
+    else:
+        print("未收到愿望内容")
+
+    # 重定向回愿望清单页面
+    return redirect(url_for('wishlist.wishlist'))
 
 
-# 切换愿望状态
-@wishlist_bp.route('/wishlist/toggle', methods=['POST'])
-def toggle_wish():
-    index = int(request.form.get('index', -1))
-    if index != -1:
-        toggle_wish_status(index)
-    return redirect(url_for('wishlist.wishlist', _external=True))
+@wishlist_bp.route('/wishlist/toggle/<int:index>', methods=['POST'])
+def toggle_wish(index):
+    """切换愿望完成状态"""
+    checked = request.form.get('checked', 'false') == 'true'
+    toggle_wish_check(index, checked)
+    return '', 204
 
 
-# 更新愿望详情（文本+图片）
-@wishlist_bp.route('/wishlist/update-detail', methods=['POST'])
-def update_detail():
-    index = int(request.form.get('index', -1))
-    detail_text = request.form.get('detail_text', '').strip()
+@wishlist_bp.route('/wishlist/reply/<int:index>', methods=['POST'])
+def reply_wish_route(index):
+    """回复愿望"""
+    reply_content = request.form.get('reply', '').strip()
+    admin_ip = get_client_ip(request)
 
-    # 处理图片上传
-    image_paths = []
-    if 'images' in request.files:
-        upload_dir = os.path.join(os.path.dirname(__file__), '../static/uploads')
-        os.makedirs(upload_dir, exist_ok=True)
+    if reply_content:
+        reply_wish(index, reply_content, admin_ip)
 
-        for image in request.files.getlist('images'):
-            if image.filename:
-                filename = f"{os.urandom(16).hex()}_{image.filename}"
-                filepath = os.path.join(upload_dir, filename)
-                image.save(filepath)
-                image_paths.append(f'/static/uploads/{filename}')
-
-    if index != -1:
-        update_wish_detail(index, detail_text, image_paths)
-    return jsonify({'status': 'success'})
+    return redirect(url_for('wishlist.wishlist'))
 
 
-# 获取愿望详情
-@wishlist_bp.route('/wishlist/get-detail')
-def get_detail():
-    index = int(request.args.get('index', -1))
-    if index != -1:
-        wish = get_wish_detail(index)
-        return jsonify(wish)
-    return jsonify({})
-
-
-# 添加愿望备注
-@wishlist_bp.route('/wishlist/add-note', methods=['POST'])
-def add_note():
-    index = int(request.form.get('index', -1))
-    note = request.form.get('note', '').strip()
-    if index != -1 and note:
-        add_wish_note(index, note)
-    return jsonify({'status': 'success'})
+@wishlist_bp.route('/wishlist/delete/<int:index>', methods=['POST'])
+def delete_wish_route(index):
+    """删除愿望"""
+    delete_wish(index)
+    return redirect(url_for('wishlist.wishlist'))

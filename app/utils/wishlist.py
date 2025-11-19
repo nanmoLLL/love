@@ -1,143 +1,215 @@
-from datetime import datetime
 import os
+from datetime import datetime
 from flask import current_app
-
-
-# 确保数据目录存在（修复因目录不存在导致的读写失败）
-def ensure_data_dir():
-    data_dir = os.path.dirname(current_app.config['WISHLIST_FILE'])
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir, exist_ok=True)  # 递归创建目录，避免权限问题
+from app.utils.common import ensure_data_dir
 
 
 def init_wishlist_file():
-    """初始化愿望清单文件（确保文件和目录存在）"""
-    ensure_data_dir()
-    if not os.path.exists(current_app.config['WISHLIST_FILE']):
-        with open(current_app.config['WISHLIST_FILE'], "w", encoding="utf-8") as f:
-            f.write("")  # 格式：状态|时间|IP|内容|详情文本|图片路径(逗号分隔)|备注(时间|内容;分隔)
+    """初始化愿望清单文件（如果不存在则创建）"""
+    try:
+        ensure_data_dir()
+        wish_file = current_app.config.get('WISHLIST_FILE', os.path.join(current_app.root_path, 'data', 'wishlist.txt'))
+
+        if not os.path.exists(wish_file):
+            with open(wish_file, 'w', encoding='utf-8') as f:
+                f.write('')
+            print(f"愿望清单文件已初始化：{wish_file}")
+    except Exception as e:
+        print(f"初始化愿望清单文件失败：{str(e)}")
 
 
 def get_wishes():
-    """获取所有愿望（修复解析错误，兼容空行和缺失字段）"""
-    wishes = []
+    """获取所有愿望列表（添加ID+按时间排序）"""
+    wishlist = []
+    wish_file = current_app.config.get('WISHLIST_FILE', os.path.join(current_app.root_path, 'data', 'wishlist.txt'))
+
+    if not os.path.exists(wish_file):
+        return wishlist
+
     try:
-        ensure_data_dir()
-        # 若文件不存在，直接返回空列表
-        if not os.path.exists(current_app.config['WISHLIST_FILE']):
-            return wishes
+        with open(wish_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
 
-        with open(current_app.config['WISHLIST_FILE'], "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:  # 跳过空行（关键修复：避免解析空行导致的错误）
-                    continue
+        # 为每个愿望添加ID并按时间排序
+        for idx, line in enumerate(lines):
+            line = line.strip()
+            if line:
+                parts = line.split('|', 7)  # 增加到8个字段以支持描述
+                if len(parts) >= 4:  # 确保有基本字段
+                    # 解析图片列表
+                    images = parts[6].split(',') if len(parts) > 6 and parts[6] else []
+                    images = [img for img in images if img.strip()]  # 过滤空值
 
-                # 按分隔符拆分，最多7个字段（兼容旧数据）
-                parts = line.split("|", 6)
-                # 补全缺失的字段（确保长度为7，避免索引越界）
-                while len(parts) < 7:
-                    parts.append("")
+                    wish = {
+                        'id': idx + 1,  # 添加自增ID
+                        'index': idx,  # 保留原索引用于操作
+                        'checked': parts[0] == '1',
+                        'time': parts[1],
+                        'ip': parts[2],
+                        'content': parts[3],
+                        'reply': parts[4] if len(parts) > 4 else '',
+                        'reply_time': parts[5] if len(parts) > 5 else '',
+                        'images': images,  # 图片列表
+                        'description': parts[7] if len(parts) > 7 else ''  # 详细描述
+                    }
+                    wishlist.append(wish)
 
-                status, time, ip, content, detail_text, images, notes = parts
-                wishes.append({
-                    'completed': status == '1',
-                    'time': time,
-                    'ip': ip,
-                    'content': content,
-                    'detail_text': detail_text,
-                    'images': images,
-                    'notes': notes
-                })
+        # 按时间倒序排列（最新的在前面）
+        wishlist.sort(key=lambda x: x['time'], reverse=True)
+
     except Exception as e:
-        print(f"读取愿望失败：{str(e)}")  # 打印错误信息，方便调试
-    return wishes
+        print(f"读取愿望列表失败：{str(e)}")
+
+    return wishlist
 
 
 def add_wish(content, ip_addr):
-    """添加新愿望（修复写入格式，确保字段完整）"""
-    if not content.strip():  # 过滤空内容
+    """添加新愿望"""
+    if not content.strip():
+        print("愿望内容为空，跳过写入")
         return
+
     try:
         ensure_data_dir()
+        wish_file = current_app.config.get('WISHLIST_FILE', os.path.join(current_app.root_path, 'data', 'wishlist.txt'))
         time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # 严格按照格式写入，确保7个字段（状态|时间|IP|内容|详情|图片|备注）
-        line = f"0|{time_str}|{ip_addr}|{content}||||\n"  # 后四个字段暂为空
-        with open(current_app.config['WISHLIST_FILE'], "a", encoding="utf-8") as f:
+        line = f"0|{time_str}|{ip_addr}|{content}|||||\n"  # 增加一个空字段用于描述
+
+        with open(wish_file, "a", encoding="utf-8") as f:
             f.write(line)
+        print(f"愿望写入成功：{wish_file}")
+
     except Exception as e:
-        print(f"添加愿望失败：{str(e)}")  # 打印错误信息
+        print(f"添加愿望失败：{str(e)}")
 
 
-def toggle_wish_status(index):
-    """切换愿望状态（兼容新格式）"""
-    wishes = []
+def toggle_wish_status(index, checked):
+    """切换愿望完成状态"""
+    wish_file = current_app.config.get('WISHLIST_FILE', os.path.join(current_app.root_path, 'data', 'wishlist.txt'))
+
+    if not os.path.exists(wish_file):
+        return False
+
     try:
-        with open(current_app.config['WISHLIST_FILE'], "r", encoding="utf-8") as f:
-            wishes = [line.strip() for line in f if line.strip()]  # 过滤空行
+        with open(wish_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
 
-        if 0 <= index < len(wishes):
-            parts = wishes[index].split("|", 6)
-            while len(parts) < 7:
-                parts.append("")
-            # 切换状态（0<->1）
-            parts[0] = '1' if parts[0] == '0' else '0'
-            wishes[index] = "|".join(parts)
+        if 0 <= index < len(lines):
+            parts = lines[index].strip().split('|', 7)  # 支持8个字段
+            if len(parts) >= 1:
+                parts[0] = '1' if checked else '0'
+                # 确保字段数量足够
+                while len(parts) < 8:
+                    parts.append('')
+                lines[index] = '|'.join(parts) + '\n'
 
-            # 写回文件
-            with open(current_app.config['WISHLIST_FILE'], "w", encoding="utf-8") as f:
-                f.write("\n".join(wishes) + "\n")
+                with open(wish_file, 'w', encoding='utf-8') as f:
+                    f.writelines(lines)
+                return True
     except Exception as e:
         print(f"切换愿望状态失败：{str(e)}")
 
+    return False
 
-def update_wish_detail(index, detail_text, image_paths):
-    """更新愿望详情（文本+图片）"""
-    wishes = []
+
+def reply_wish(index, reply_content, admin_ip):
+    """回复愿望"""
+    wish_file = current_app.config.get('WISHLIST_FILE', os.path.join(current_app.root_path, 'data', 'wishlist.txt'))
+
+    if not os.path.exists(wish_file):
+        return False
+
     try:
-        with open(current_app.config['WISHLIST_FILE'], "r", encoding="utf-8") as f:
-            wishes = [line.strip() for line in f if line.strip()]
+        with open(wish_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
 
-        if 0 <= index < len(wishes):
-            parts = wishes[index].split("|", 6)
-            while len(parts) < 7:
-                parts.append("")
-            parts[4] = detail_text  # 详情文本（第5个字段）
-            parts[5] = ",".join(image_paths) if image_paths else parts[5]  # 图片路径（第6个字段）
-            wishes[index] = "|".join(parts)
+        if 0 <= index < len(lines):
+            parts = lines[index].strip().split('|', 7)
+            while len(parts) < 8:
+                parts.append('')
 
-            with open(current_app.config['WISHLIST_FILE'], "w", encoding="utf-8") as f:
-                f.write("\n".join(wishes) + "\n")
+            parts[4] = reply_content
+            parts[5] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            parts[6] = admin_ip  # 这里改为存储图片，回复功能需要调整
+
+            lines[index] = '|'.join(parts) + '\n'
+
+            with open(wish_file, 'w', encoding='utf-8') as f:
+                f.writelines(lines)
+            return True
     except Exception as e:
-        print(f"更新愿望详情失败：{str(e)}")
+        print(f"回复愿望失败：{str(e)}")
+
+    return False
 
 
-def get_wish_detail(index):
-    """获取单个愿望详情"""
-    wishes = get_wishes()
-    if 0 <= index < len(wishes):
-        return wishes[index]
-    return {}
+def delete_wish(index):
+    """删除愿望"""
+    wish_file = current_app.config.get('WISHLIST_FILE', os.path.join(current_app.root_path, 'data', 'wishlist.txt'))
 
+    if not os.path.exists(wish_file):
+        return False
 
-def add_wish_note(index, note_content):
-    """添加愿望备注"""
-    wishes = []
     try:
-        with open(current_app.config['WISHLIST_FILE'], "r", encoding="utf-8") as f:
-            wishes = [line.strip() for line in f if line.strip()]
+        with open(wish_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
 
-        if 0 <= index < len(wishes):
-            parts = wishes[index].split("|", 6)
-            while len(parts) < 7:
-                parts.append("")
-            # 备注格式：时间|内容;时间|内容...
-            time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            new_note = f"{time_str}|{note_content}"
-            parts[6] = f"{parts[6]};{new_note}" if parts[6] else new_note  # 备注（第7个字段）
-            wishes[index] = "|".join(parts)
+        if 0 <= index < len(lines):
+            del lines[index]
 
-            with open(current_app.config['WISHLIST_FILE'], "w", encoding="utf-8") as f:
-                f.write("\n".join(wishes) + "\n")
+            with open(wish_file, 'w', encoding='utf-8') as f:
+                f.writelines(lines)
+            return True
     except Exception as e:
-        print(f"添加备注失败：{str(e)}")
+        print(f"删除愿望失败：{str(e)}")
+
+    return False
+
+
+def save_wish_details(index, title, description, new_images=None, deleted_images=None):
+    """保存愿望详情（标题、描述、图片）"""
+    wish_file = current_app.config.get('WISHLIST_FILE', os.path.join(current_app.root_path, 'data', 'wishlist.txt'))
+
+    if not os.path.exists(wish_file):
+        return False
+
+    try:
+        with open(wish_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+
+        if 0 <= index < len(lines):
+            parts = lines[index].strip().split('|', 7)
+            # 确保字段数量足够
+            while len(parts) < 8:
+                parts.append('')
+
+            # 更新标题（content字段）
+            parts[3] = title
+
+            # 更新描述（第8个字段）
+            parts[7] = description
+
+            # 处理图片
+            current_images = parts[6].split(',') if parts[6] else []
+            current_images = [img for img in current_images if img.strip()]
+
+            # 删除图片
+            if deleted_images:
+                current_images = [img for img in current_images if img not in deleted_images]
+
+            # 添加新图片
+            if new_images:
+                current_images.extend(new_images)
+
+            # 更新图片字段
+            parts[6] = ','.join(current_images)
+
+            lines[index] = '|'.join(parts) + '\n'
+
+            with open(wish_file, 'w', encoding='utf-8') as f:
+                f.writelines(lines)
+            return True
+    except Exception as e:
+        print(f"保存愿望详情失败：{str(e)}")
+
+    return False
