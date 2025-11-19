@@ -112,7 +112,7 @@ h1 {
     background-color: #fff;
     border-radius: 10px;
     box-shadow: 0 3px 15px rgba(0,0,0,0.08);
-    padding: 0;
+    padding: 10px;
     transition: all 0.3s;
     border: 1px solid #eee;
     cursor: pointer;
@@ -155,11 +155,13 @@ h1 {
 }
 
 .wish-card-header {
-    padding: 15px;
+    display: flex;                  /* 添加flex布局 */
+    justify-content: space-between; /* 两侧对齐 */
+    align-items: center;            /* 垂直居中 */
+    padding: 0;
     border-bottom: 1px solid #f0f0f0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
 }
 
 .wish-title {
@@ -167,6 +169,11 @@ h1 {
     margin: 0;
     color: #333;
     line-height: 1.4;
+    /* 限制标题长度，防止挤压时间 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
 }
 
 .wish-time {
@@ -176,7 +183,9 @@ h1 {
 }
 
 .wish-card-body {
-    padding: 15px;
+   min-height: 8vh;
+  display: flex;
+  justify-content: space-between
 }
 
 .wish-desc {
@@ -354,6 +363,31 @@ h1 {
     cursor: pointer;
 }
 
+.text-icon{
+ display: flex;
+}
+
+.wish-thumbnail {
+    width: 150px;                  /* 更小的尺寸 */
+    height: 150px;                 /* 更小的尺寸 */
+    min-width: 40px;              /* 确保宽度不被压缩 */
+    min-height: 40px;             /* 确保高度不被压缩 */
+    border-radius: 4px;           /* 更小的圆角 */
+    overflow: hidden;             /* 裁剪超出部分 */
+    flex-shrink: 0;               /* 禁止缩小 */
+    flex-grow: 0;                 /* 禁止放大 */
+    background-color: #f8f9fa;
+    border: 1px solid #eee;       /* 轻微边框 */
+}
+
+/* 缩略图图片 - 强制适应容器 */
+.wish-thumbnail img {
+    width: 100% !important;       /* 强制宽度100% */
+    height: 100% !important;      /* 强制高度100% */
+    object-fit: cover !important; /* 确保图片填充容器 */
+    object-position: center !important; /* 居中显示 */
+    display: block;               /* 移除底部空隙 */
+}
 .modal-footer {
     padding: 15px 20px;
     border-top: 1px solid #eee;

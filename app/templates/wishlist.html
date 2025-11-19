@@ -43,6 +43,8 @@
             padding-top: 60px;
             margin: 0;
             font-family: 'Microsoft Yahei', sans-serif;
+            /* 修改背景渐变：红色系改为蓝色系，第二个颜色保持不变 */
+            background: linear-gradient(135deg, #e6f2ff 0%, #e6e6fa 100%);
         }
     </style>
 </head>
@@ -51,7 +53,7 @@
     <div class="navbar">
         <div class="nav-links">
             <a href="/">首页</a>
-            <a href="/wishlist" class="active">愿望清单</a>
+            <a href="/wishlist">愿望清单</a>
         </div>
     </div>
 
@@ -79,22 +81,28 @@
                 {% if wishes %}
                     {% for wish in wishes %}
                     <div class="wish-card {% if wish.checked %}completed{% endif %}" data-id="{{ wish.id }}" data-index="{{ wish.index }}">
-                        <!-- 图片预览区域 -->
-                        {% if wish.images and wish.images|length > 0 %}
-                        <div class="wish-image">
-                            <img src="{{ url_for('static', filename='uploads/' + wish.images[0]) }}" alt="愿望图片">
-                        </div>
-                        {% endif %}
+                        <!-- 卡片内部Flex容器 -->
+                        <div class="wish-card-inner">
+                            <!-- 文字内容区域 -->
+                            <div class="wish-content">
+                                <div class="wish-card-header">
+                                    <p class="wish-title {% if wish.checked %}completed{% endif %}">{{ wish.content }}</p>
+                                    <span class="wish-time">{{ wish.time }}</span>
+                                </div>
 
-                        <div class="wish-card-header">
-                            <p class="wish-title {% if wish.checked %}completed{% endif %}">{{ wish.content }}</p>
-                            <span class="wish-time">{{ wish.time }}</span>
+                                <div class="wish-card-body">
+                                    <p class="wish-desc">{{ wish.description }}</p>
+                                    <!-- 图片缩略图区域 - 更小尺寸 -->
+                                    {% if wish.images and wish.images|length > 0 %}
+                                    <div class="wish-thumbnail">
+                                        <img src="{{ url_for('static', filename='uploads/' + wish.images[0]) }}" alt="愿望图片">
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="wish-card-body">
-                            <p class="wish-desc">{{ wish.description }}</p>
-                        </div>
-
+                        <!-- 底部按钮区域 -->
                         <div class="wish-card-footer">
                             <button class="toggle-btn {% if wish.checked %}completed{% else %}pending{% endif %}"
                                     data-index="{{ wish.index }}">
@@ -116,22 +124,28 @@
                 {% if pending_wishes %}
                     {% for wish in pending_wishes %}
                     <div class="wish-card" data-id="{{ wish.id }}" data-index="{{ wish.index }}">
-                        <!-- 图片预览区域 -->
-                        {% if wish.images and wish.images|length > 0 %}
-                        <div class="wish-image">
-                            <img src="{{ url_for('static', filename='uploads/' + wish.images[0]) }}" alt="愿望图片">
-                        </div>
-                        {% endif %}
+                        <!-- 卡片内部Flex容器 -->
+                        <div class="wish-card-inner">
+                            <!-- 文字内容区域 -->
+                            <div class="wish-content">
+                                <div class="wish-card-header">
+                                    <p class="wish-title">{{ wish.content }}</p>
+                                    <span class="wish-time">{{ wish.time }}</span>
+                                </div>
 
-                        <div class="wish-card-header">
-                            <p class="wish-title">{{ wish.content }}</p>
-                            <span class="wish-time">{{ wish.time }}</span>
+                                <div class="wish-card-body">
+                                    <p class="wish-desc">{{ wish.description }}</p>
+                                    <!-- 图片缩略图区域 - 更小尺寸 -->
+                                    {% if wish.images and wish.images|length > 0 %}
+                                    <div class="wish-thumbnail">
+                                        <img src="{{ url_for('static', filename='uploads/' + wish.images[0]) }}" alt="愿望图片">
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="wish-card-body">
-                            <p class="wish-desc">{{ wish.description }}</p>
-                        </div>
-
+                        <!-- 底部按钮区域 -->
                         <div class="wish-card-footer">
                             <button class="toggle-btn pending" data-index="{{ wish.index }}">标记为已完成</button>
                         </div>
@@ -150,22 +164,28 @@
                 {% if completed_wishes %}
                     {% for wish in completed_wishes %}
                     <div class="wish-card completed" data-id="{{ wish.id }}" data-index="{{ wish.index }}">
-                        <!-- 图片预览区域 -->
-                        {% if wish.images and wish.images|length > 0 %}
-                        <div class="wish-image">
-                            <img src="{{ url_for('static', filename='uploads/' + wish.images[0]) }}" alt="愿望图片">
-                        </div>
-                        {% endif %}
+                        <!-- 卡片内部Flex容器 -->
+                        <div class="wish-card-inner">
+                            <!-- 文字内容区域 -->
+                            <div class="wish-content">
+                                <div class="wish-card-header">
+                                    <p class="wish-title completed">{{ wish.content }}</p>
+                                    <span class="wish-time">{{ wish.time }}</span>
+                                </div>
 
-                        <div class="wish-card-header">
-                            <p class="wish-title completed">{{ wish.content }}</p>
-                            <span class="wish-time">{{ wish.time }}</span>
+                                <div class="wish-card-body">
+                                    <p class="wish-desc">{{ wish.description }}</p>
+                                    <!-- 图片缩略图区域 - 更小尺寸 -->
+                                    {% if wish.images and wish.images|length > 0 %}
+                                    <div class="wish-thumbnail">
+                                        <img src="{{ url_for('static', filename='uploads/' + wish.images[0]) }}" alt="愿望图片">
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="wish-card-body">
-                            <p class="wish-desc">{{ wish.description }}</p>
-                        </div>
-
+                        <!-- 底部按钮区域 -->
                         <div class="wish-card-footer">
                             <button class="toggle-btn completed" data-index="{{ wish.index }}">标记为未完成</button>
                         </div>
